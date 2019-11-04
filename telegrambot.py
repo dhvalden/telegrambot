@@ -76,7 +76,7 @@ def stop(update, context):
 
 
 @restricted
-def start(update, context):
+def start_service(update, context):
     response = subprocess.run(["sudo", "service", "tweet_collector", "start"],
                               stdout=subprocess.PIPE)
     statusd = str(response.stdout, encoding="utf-8")
@@ -124,8 +124,8 @@ def main():
     stop_handler = CommandHandler('stop', stop)
     dispatcher.add_handler(stop_handler)
 
-    start_handler = CommandHandler('start', start)
-    dispatcher.add_handler(start_handler)
+    start_s_handler = CommandHandler('startService', start_service)
+    dispatcher.add_handler(start_s_handler)
 
     restart_handler = CommandHandler('restart', restart)
     dispatcher.add_handler(restart_handler)
