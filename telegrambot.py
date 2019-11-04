@@ -36,8 +36,7 @@ def restricted(func):
 
 def start(update, context):
     STARTMESSAGE = '''
-    Hola/Hello/Hallo I'm a bot that can 
-    check the status of a Virtual Machine!
+    Hola/Hello/Hallo I'm the bot checking your data collection!
     '''
     context.bot.send_message(chat_id=update.message.chat_id,
                              text=STARTMESSAGE)
@@ -69,6 +68,30 @@ def status(update, context):
 
 
 @restricted
+def stop(update, context):
+    response = subprocess.run(["sudo", "service", "tweet_collector", "stop"],
+                              stdout=subprocess.PIPE)
+    statusd = str(response.stdout, encoding="utf-8")
+    context.bot.send_message(chat_id=update.message.chat_id, text=statusd)
+
+
+@restricted
+def start(update, context):
+    response = subprocess.run(["sudo", "service", "tweet_collector", "start"],
+                              stdout=subprocess.PIPE)
+    statusd = str(response.stdout, encoding="utf-8")
+    context.bot.send_message(chat_id=update.message.chat_id, text=statusd)
+
+
+@restricted
+def restart(update, context):
+    response = subprocess.run(["sudo", "service", "tweet_collector", "restart"],
+                              stdout=subprocess.PIPE)
+    statusd = str(response.stdout, encoding="utf-8")
+    context.bot.send_message(chat_id=update.message.chat_id, text=statusd)
+
+
+@restricted
 def ckeywords(update, context):
     KEYWORDS = "/home/daniel/envs/tweet_collector/keywords"
     response = subprocess.run(["cat", KEYWORDS], stdout=subprocess.PIPE)
@@ -80,7 +103,7 @@ def main():
     PATH = os.path.dirname(os.path.realpath(__file__))
     KEYS = PATH + "/keys"
 
-    credentials = read_keys(KEYS, "TOKEN")
+    credentials = read_keys(KEYS, ["TOKEN"])
     
     updater = Updater(token=credentials["TOKEN"], use_context=True)
 
@@ -97,6 +120,15 @@ def main():
 
     status_handler = CommandHandler('status', status)
     dispatcher.add_handler(status_handler)
+
+    stop_handler = CommandHandler('stop', stop)
+    dispatcher.add_handler(stop_handler)
+
+    start_handler = CommandHandler('start', start)
+    dispatcher.add_handler(start_handler)
+
+    restart_handler = CommandHandler('restart', restart)
+    dispatcher.add_handler(restart_handler)
 
     keywords_handler = CommandHandler('keywords', ckeywords)
     dispatcher.add_handler(keywords_handler)
