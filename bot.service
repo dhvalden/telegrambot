@@ -1,0 +1,13 @@
+[Unit]
+Description=Notify status of VM upon request
+After=multi-user.target
+
+[Service]
+Type=simple
+User=daniel
+ExecStart=/usr/bin/python3 /home/daniel/telegrambot.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
