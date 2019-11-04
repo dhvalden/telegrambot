@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import logging
 import subprocess
 from telegram.ext import Updater
@@ -8,6 +9,19 @@ from telegram.ext import MessageHandler, Filters
 from telegram import InlineQueryResultArticle, InputTextMessageContent
 from telegram.ext import InlineQueryHandler
 from functools import wraps
+
+LIST_OF_ADMINS = [757127759]
+
+def read_keys(file_name, key_names):
+    credentials = {}
+    with open(file_name, "r") as f:
+        text = f.read()
+        keylist = text.replace("=", " ").split()
+    for key in key_names:
+        index = keylist.index(key)
+        credentials[key] = keylist[index+1]
+    return credentials
+
 
 def restricted(func):
     @wraps(func)
@@ -21,17 +35,22 @@ def restricted(func):
 
 
 def start(update, context):
+    STARTMESSAGE = '''
+    Hola/Hello/Hallo I'm a bot that can 
+    check the status of a Virtual Machine!
+    '''
     context.bot.send_message(chat_id=update.message.chat_id,
-                             text="Hola/Hello/Hallo I'm a bot that can check the status of a Virtual Machine!")
+                             text=STARTMESSAGE)
 
 @restricted
 def addKeywords(update, context):
-    keywords = context.args
-    with open("/home/daniel/keywords.txt", "a") as o:
-        for word in keywords:
+    KEYWORDS = "/home/daniel/envs/tweet_collector/keywords"
+    new_keywords = context.args
+    with open(KEYWORDS, "a") as o:
+        for word in new_keywords:
             print(word)
             o.write(word + "\n")
-    with open("/home/daniel/keywords.txt", "r") as f:
+    with open(KEYWORDS, "r") as f:
         filekeys = f.read().splitlines()
     context.bot.send_message(chat_id=update.message.chat_id, text=filekeys)
 
@@ -43,20 +62,27 @@ def unknown(update, context):
 
 @restricted
 def status(update, context):
-    response = subprocess.run(["sudo", "service", "tweet_collector", "status"], stdout=subprocess.PIPE)
+    response = subprocess.run(["sudo", "service", "tweet_collector", "status"],
+                              stdout=subprocess.PIPE)
     statusd = str(response.stdout, encoding="utf-8")
     context.bot.send_message(chat_id=update.message.chat_id, text=statusd)
 
 
 @restricted
 def ckeywords(update, context):
-    response = subprocess.run(["cat", "home/daniel/envs/tweet_collector/keywords"], stdout=subprocess.PIPE)
+    KEYWORDS = "/home/daniel/envs/tweet_collector/keywords"
+    response = subprocess.run(["cat", KEYWORDS], stdout=subprocess.PIPE)
     keywords = str(response.stdout, encoding="utf-8")
     context.bot.send_message(chat_id=update.message.chat_id, text=keywords)
 
 
 def main():
-    updater = Updater(token=TOKEN, use_context=True)
+    PATH = os.path.dirname(os.path.realpath(__file__))
+    KEYS = PATH + "/keys"
+
+    credentials = read_keys(KEYS, "TOKEN")
+    
+    updater = Updater(token=credentials["TOKEN"], use_context=True)
 
     dispatcher = updater.dispatcher
 
